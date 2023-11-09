@@ -22,7 +22,7 @@ public class PixValidator {
     @Autowired
     private PixRepository pixRepository;
 
-    @KafkaListener(topics = "pix-topic", groupId = "grupo")
+    @KafkaListener(topics = "astin04.poc-pix-topic", groupId = "grupo")
     @RetryableTopic(
             backoff = @Backoff(value = 3000L),
             attempts = "5",
@@ -39,11 +39,12 @@ public class PixValidator {
 
         if (origem == null || destino == null) {
             pix.setStatus(PixStatus.ERRO);
+            pixRepository.save(pix);
             throw new KeyNotFoundException();
         } else {
             pix.setStatus(PixStatus.PROCESSADO);
+            pixRepository.save(pix);
         }
-        pixRepository.save(pix);
     }
 
 }

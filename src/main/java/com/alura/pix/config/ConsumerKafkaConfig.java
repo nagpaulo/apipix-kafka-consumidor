@@ -44,9 +44,10 @@ public class ConsumerKafkaConfig {
         props.put( ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put( ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         props.put( JsonDeserializer.TRUSTED_PACKAGES, "*");
-//        props.put( ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
-//        props.put( ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-//        props.put( ConsumerConfig.ALLOW_AUTO_CREATE_TOPICS_CONFIG, false);
+        props.put( ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 20000000);
+        props.put( ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
+        props.put( ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put( ConsumerConfig.ALLOW_AUTO_CREATE_TOPICS_CONFIG, false);
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
