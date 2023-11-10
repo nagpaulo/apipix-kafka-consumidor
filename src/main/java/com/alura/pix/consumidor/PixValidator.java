@@ -1,13 +1,15 @@
 package com.alura.pix.consumidor;
 
 import com.alura.pix.avro.PixRecord;
-import com.alura.pix.dto.PixDTO;
 import com.alura.pix.dto.PixStatus;
 import com.alura.pix.exception.KeyNotFoundException;
 import com.alura.pix.model.Key;
 import com.alura.pix.model.Pix;
 import com.alura.pix.repository.KeyRepository;
 import com.alura.pix.repository.PixRepository;
+import jakarta.transaction.Transactional;
+import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
@@ -15,6 +17,7 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class PixValidator {
 
     @Autowired
@@ -30,6 +33,7 @@ public class PixValidator {
             autoCreateTopics = "true",
             include = KeyNotFoundException.class
     )
+    @Transactional
     public void processaPix(PixRecord pixRecord) {
         System.out.println("Pix  recebido: " + pixRecord.getIdentificador());
 
@@ -38,15 +42,21 @@ public class PixValidator {
         Key origem = keyRepository.findByChave(pixRecord.getChaveOrigem().toString());
         Key destino = keyRepository.findByChave(pixRecord.getChaveDestino().toString());
 
-        if(pix != null) {
-            if (origem == null || destino == null) {
-                pix.setStatus(PixStatus.ERRO);
-                pixRepository.save(pix);
-                throw new KeyNotFoundException();
-            } else {
-                pix.setStatus(PixStatus.PROCESSADO);
-                pixRepository.save(pix);
-            }
+        try {
+            validarPix(pix,origem,destino);
+        } catch (KeyNotFoundException e) {
+            log.warn("Fail to handle event {}.", pix.getIdentifier());
+        } finally {
+            pixRepository.save(pix);
+        }
+    }
+
+    private void validarPix(Pix pix, Key origem, Key destino) {
+        if (origem == null || destino == null) {
+            pix.setStatus(PixStatus.ERRO);
+            throw new KeyNotFoundException();
+        } else {
+            pix.setStatus(PixStatus.PROCESSADO);
         }
     }
 
