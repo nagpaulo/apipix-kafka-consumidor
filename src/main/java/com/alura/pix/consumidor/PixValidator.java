@@ -8,7 +8,6 @@ import com.alura.pix.model.Pix;
 import com.alura.pix.repository.KeyRepository;
 import com.alura.pix.repository.PixRepository;
 import jakarta.transaction.Transactional;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -41,18 +40,13 @@ public class PixValidator {
 
         Key origem = keyRepository.findByChave(pixRecord.getChaveOrigem().toString());
         Key destino = keyRepository.findByChave(pixRecord.getChaveDestino().toString());
-
-        try {
-            validarPix(pix,origem,destino);
-        } catch (KeyNotFoundException e) {
-            log.warn("Fail to handle event {}.", pix.getIdentifier());
-        } finally {
-            pixRepository.save(pix);
-        }
+        validarPix(pix,origem,destino);
+        pixRepository.save(pix);
     }
 
     private void validarPix(Pix pix, Key origem, Key destino) {
         if (origem == null || destino == null) {
+            log.warn("Fail to handle event {}.", pix.getIdentifier());
             pix.setStatus(PixStatus.ERRO);
             throw new KeyNotFoundException();
         } else {
