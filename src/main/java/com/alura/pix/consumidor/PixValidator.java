@@ -7,8 +7,6 @@ import com.alura.pix.model.Key;
 import com.alura.pix.model.Pix;
 import com.alura.pix.repository.KeyRepository;
 import com.alura.pix.repository.PixRepository;
-import jakarta.transaction.Transactional;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -33,7 +31,6 @@ public class PixValidator {
             autoCreateTopics = "true",
             include = KeyNotFoundException.class
     )
-    @Transactional
     public void processaPix(PixRecord pixRecord) {
         System.out.println("Pix  recebido: " + pixRecord.getIdentificador());
 
@@ -43,18 +40,21 @@ public class PixValidator {
         Key destino = keyRepository.findByChave(pixRecord.getChaveDestino().toString());
 
         try {
-            validarPix(pix,origem,destino);
+            validarPix(pix, origem, destino);
         } catch (KeyNotFoundException e) {
             log.warn("Fail to handle event {}.", pix.getIdentifier());
+            pixRepository.save(pix);
+            throw e;
         } finally {
             pixRepository.save(pix);
         }
     }
 
+
     private void validarPix(Pix pix, Key origem, Key destino) {
         if (origem == null || destino == null) {
             pix.setStatus(PixStatus.ERRO);
-            throw new KeyNotFoundException();
+            throw new KeyNotFoundException("Chaves não encontradas origem e destino!");
         } else {
             pix.setStatus(PixStatus.PROCESSADO);
         }
