@@ -1,6 +1,7 @@
 package com.alura.pix.config;
 
 import com.alura.pix.avro.PixRecord;
+import com.alura.pix.dto.PixDTO;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
