@@ -32,7 +32,6 @@ public class PixValidator {
             autoCreateTopics = "true",
             include = KeyNotFoundException.class
     )
-    @Transactional
     public void processaPix(PixRecord pixRecord) {
         System.out.println("Pix  recebido: " + pixRecord.getIdentificador());
 
@@ -44,11 +43,12 @@ public class PixValidator {
         pixRepository.save(pix);
     }
 
+
     private void validarPix(Pix pix, Key origem, Key destino) {
         if (origem == null || destino == null) {
             log.warn("Fail to handle event {}.", pix.getIdentifier());
             pix.setStatus(PixStatus.ERRO);
-            throw new KeyNotFoundException();
+            throw new KeyNotFoundException("Chaves não encontradas origem e destino!");
         } else {
             pix.setStatus(PixStatus.PROCESSADO);
         }
